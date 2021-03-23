@@ -4,13 +4,46 @@
 		<title>Quantum Computer Simulator</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<style>
+			.bar {
+				background-color: #43F;
+				width: 1em;
+			}
+
+			#prob-wrapper, #prob-labels {
+				display: flex;
+				flex-flow: row nowrap;
+				justify-content: space-around;
+				align-items: flex-end;
+			}
+
+			#prob-wrapper {
+				background-color: #DDD;
+				height: 5em;
+				width: 10em;
+			}
+
+			#prob-labels {
+				width: 10em;
+			}
+		</style>
 	</head>
 	<body>
 		<a href="https://bakaq.github.io">Return</a>
 
 		<p>State: <span id="state"></span></p>
 		<p>Bloch Coordinates: <span id="bloch"></span></p>
-		<p>Probabilities: <br> <span id="probs"></span></p>
+		<p>Probabilities:
+			<div id="prob-wrapper">
+				<div id="prob0" class="bar" height="1em"></div>
+				<div id="prob1" class="bar"></div>
+			</div>
+			<div id="prob-labels">
+				<span>|0&gt;</span>
+				<span>|1&gt;</span>
+			</div>
+		</p>
 
 
 		<button id="hadamard">Hadamard</button>

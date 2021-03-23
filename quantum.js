@@ -163,7 +163,7 @@ function showState(state) {
 }
 
 function probabilities(state) {
-	return `|0>: ${state.content[0].norm2()}\n |1>: ${state.content[1].norm2()}`;
+	return [state.content[0].norm2(), state.content[1].norm2()];
 }
 
 function blochCoords(state) {
@@ -215,12 +215,16 @@ state.content[1] = new Complex(0, 0);
 // == Connect DOM ==
 
 let stateDisplay = document.getElementById("state");
-let probsDisplay = document.getElementById("probs");
+let prob0Display = document.getElementById("prob0");
+let prob1Display = document.getElementById("prob1");
 let blochDisplay = document.getElementById("bloch");
 
 function updateDisplay() {
 	stateDisplay.innerText = showState(state);
-	probsDisplay.innerText = probabilities(state);
+	
+	const probs = probabilities(state);
+	prob0Display.style.height = `${probs[0]*100}%`;
+	prob1Display.style.height = `${probs[1]*100}%`;
 	blochDisplay.innerText = blochCoords(state);
 }
 
