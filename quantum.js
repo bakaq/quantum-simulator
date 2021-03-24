@@ -25,6 +25,10 @@ class Complex {
 	norm() {
 		return Math.sqrt(this.norm2());
 	}
+
+	arg() {
+		return Math.atan2(this.imag, this.real);
+	}
 }
 
 function cAdd(c1, c2) {
@@ -249,17 +253,30 @@ state.content[1] = new Complex(0, 0);
 // == Connect DOM ==
 
 let stateDisplay = document.getElementById("state");
-let prob0Display = document.getElementById("prob0");
-let prob1Display = document.getElementById("prob1");
+
+let amp0Display = document.getElementById("amp0");
+let amp1Display = document.getElementById("amp1");
+
 let blochDisplay = document.getElementById("bloch");
 
+let prob0Display = document.getElementById("prob0");
+let prob1Display = document.getElementById("prob1");
+
+
 function updateDisplay() {
-	stateDisplay.innerText = showState(state);
+	stateDisplay.innerText = state.show();
+
+	amp0Display.style.height = `${state.content[0].norm()*100}%`;
+	amp1Display.style.height = `${state.content[1].norm()*100}%`;
+	
+	amp0Display.style.backgroundColor = `hsl(${state.content[0].arg()*180/Math.PI}, 100%, 50%)`;
+	amp1Display.style.backgroundColor = `hsl(${state.content[1].arg()*180/Math.PI}, 100%, 50%)`;
+	
+	blochDisplay.innerText = blochCoords(state);
 	
 	const probs = probabilities(state);
 	prob0Display.style.height = `${probs[0]*100}%`;
 	prob1Display.style.height = `${probs[1]*100}%`;
-	blochDisplay.innerText = blochCoords(state);
 }
 
 let hadamardBtn = document.getElementById("hadamard");

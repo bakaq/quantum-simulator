@@ -1,0 +1,17 @@
+.bar {
+	background-color: hsl(0, 100%, 50%);
+	width: 1em;
+}   
+
+#graph-wrapper, #graph-labels {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-around;
+	align-items: flex-end;
+	width: 10em;
+}   
+
+#graph-wrapper {
+	background-color: #DDD;
+	height: 5em;
+}   
