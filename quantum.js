@@ -142,7 +142,9 @@ function smMult(s, m) {
 }
 
 function mmMult(m1, m2) {
-	// TODO: check if it's possible to make multiplication
+	if (m1.n != m2.m) {
+		throw "Can't multiply matrices!"
+	}
 
 	let m3 = new cMatrix(m1.m, m2.n);
 	for (let i = 0; i < m1.m; i++) {
@@ -155,6 +157,24 @@ function mmMult(m1, m2) {
 
 	return m3;
 }
+
+function tensor(m1, m2) {
+	let m3 = new cMatrix(m1.m*m2.m, m1.n*m2.n);
+
+	for (let i = 0; i < m1.m; i++) {
+		for (let j = 0; j < m1.n; j++) {
+			for (let k = 0; k < m2.m; k++) {
+				for (let l = 0; l < m2.n; l++) {
+					m3.content[(i*m2.m + k)*m3.n + (j*m2.n + l)] =
+						cMult(m1.content[i*m1.n + j], m2.content[k*m2.n + l]);
+				}
+			}
+		}
+	}
+
+	return m3;
+} 
+
 
 // == Quantum vizualization ==
 
@@ -180,6 +200,11 @@ function blochCoords(state) {
 
 const invsqrt2 = 1/Math.sqrt(2);
 
+let I2 = new cMatrix(2, 2);
+
+I2.content[0] = new Complex(1, 0);
+I2.content[3] = new Complex(1, 0);
+
 // Single Qubit
 
 let h = new cMatrix(2, 2);
@@ -203,6 +228,15 @@ let z = new cMatrix(2, 2);
 
 z.content[0] = new Complex(1, 0);
 z.content[3] = new Complex(-1, 0);
+
+// Multiple qubit
+
+let cnot = new cMatrix(4, 4);
+
+cnot.content[0] = new Complex(1, 0);
+cnot.content[5] = new Complex(1, 0);
+cnot.content[11] = new Complex(1, 0);
+cnot.content[14] = new Complex(1, 0);
 
 // == Initialization ==
 
