@@ -20,13 +20,19 @@
 				<span>|1&gt;</span>
 			</div>
 		</p>
+		
 		<p>Phase:
 			<b style="background-color: hsl(0, 100%, 50%)">0º</b>,
 			<b style="background-color: hsl(90, 100%, 50%)">90º</b>,
 			<b style="background-color: hsl(180, 100%, 50%)">180º</b>,
 			<b style="background-color: hsl(270, 100%, 50%)">270º</b>
 		</p>
-		<p>Bloch Coordinates: <span id="bloch"></span></p>
+
+		<p>Bloch Coordinates: 
+			<span id="bloch"></span>
+			<canvas id="bloch-visualization" width=300 height=300>
+		</p>
+		
 		<p>Probabilities:
 			<div id="graph-wrapper">
 				<div id="prob0" class="bar" height="1em"></div>
@@ -44,6 +50,6 @@
 		<button id="Y">Y</button>
 		<button id="Z">Z</button>
 
-		<script src="quantum.js"></script>
+		<script type="module" src="src/main.js"></script>
 	</body>
 </html>

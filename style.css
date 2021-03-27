@@ -14,4 +14,13 @@
 #graph-wrapper {
 	background-color: #DDD;
 	height: 5em;
-}   
+}
+
+#bloch-visualization {
+	display: block;
+	height: 12em;
+	width: 12em;
+
+	border-style: solid;
+	border-color: black;
+}
