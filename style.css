@@ -106,3 +106,7 @@ body > * {
 	border-style: solid;
 	border-color: black;
 }
+
+#RphiArg {
+	width: 3em;
+}

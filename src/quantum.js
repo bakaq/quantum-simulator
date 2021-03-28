@@ -7,7 +7,7 @@ import {
 } from "./maths.js";
 
 
-export {showState, probabilities, blochCoords, I2, h, x, y, z, cnot};
+export {showState, probabilities, blochCoords, I2, h, x, y, z, cnot, Rphi};
 
 // == Quantum vizualization ==
 
@@ -61,6 +61,15 @@ let z = new cMatrix(2, 2);
 
 z.content[0] = new Complex(1, 0);
 z.content[3] = new Complex(-1, 0);
+
+function Rphi(phi) {
+	let m = new cMatrix(2, 2);
+
+	m.content[0] = new Complex(1, 0);
+	m.content[3] = new Complex(Math.cos(phi), Math.sin(phi));
+	
+	return m;
+}
 
 // Multiple qubit
 

@@ -37,6 +37,7 @@ bCtx.fill();
 
 let prob0Display = document.getElementById("prob0");
 let prob1Display = document.getElementById("prob1");
+let probDisplay = document.getElementById("prob");
 
 function updateDisplay() {
 	stateDisplay.innerText = state.show();
@@ -52,12 +53,15 @@ function updateDisplay() {
 	const probs = q.probabilities(state);
 	prob0Display.style.height = `${probs[0]*100}%`;
 	prob1Display.style.height = `${probs[1]*100}%`;
+	probDisplay.innerText = `[${(probs[0]*100).toFixed(2)}% ${(probs[1]*100).toFixed(2)}%]`;
 }
 
 let HBtn = document.getElementById("H");
 let XBtn = document.getElementById("X");
 let YBtn = document.getElementById("Y");
 let ZBtn = document.getElementById("Z");
+let RphiBtn = document.getElementById("Rphi");
+let RphiArg = document.getElementById("RphiArg");
 
 HBtn.onclick = () => {
 	state = mmMult(q.h, state).normalized();
@@ -76,6 +80,11 @@ YBtn.onclick = () => {
 
 ZBtn.onclick = () => {
 	state = mmMult(q.z, state).normalized();
+	updateDisplay();
+};
+
+RphiBtn.onclick = () => {
+	state = mmMult(q.Rphi(parseFloat(RphiArg.value)*Math.PI), state).normalized();
 	updateDisplay();
 };
 
