@@ -30,6 +30,9 @@ let sphereVertices;
 function setup(gl) {
 	calculateSphereVertices();
 
+	gl.enable(gl.CULL_FACE);
+	gl.enable(gl.DEPTH_TEST);
+
 	// Create program
 	program = webgl.createProgram(gl, vertexShader, fragmentShader);
 	
@@ -51,7 +54,7 @@ function render(gl) {
 
 	// Clear canvas
 	gl.clearColor(0x55/0xFF, 0xCC/0xFF, 0xEE/0xFF, 1);
-	gl.clear(gl.COLOR_BUFFER_BIT);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 	drawSphere(gl);
 	//drawPointer(gl);
@@ -59,7 +62,7 @@ function render(gl) {
 }
 
 function calculateSphereVertices() {
-	// TODO: Icosphere
+	// Circle
 	let r = 0.7;
 	let res = 40;
 	let vertices = [];
@@ -67,14 +70,107 @@ function calculateSphereVertices() {
 		vertices.push(r*Math.cos(2*Math.PI*i/res));
 		vertices.push(r*Math.sin(2*Math.PI*i/res));
 		
-		vertices.push(0);
-		vertices.push(0);
-		
 		vertices.push(r*Math.cos(2*Math.PI*(i+1)/res));
 		vertices.push(r*Math.sin(2*Math.PI*(i+1)/res));
+		
+		vertices.push(0);
+		vertices.push(0);
 	}
 	sphereVertices = vertices;
-	console.log(sphereVertices);
+	
+	// Icosphere
+	const t = (1 + Math.sqrt(5))/2;
+	let icoVerts = [];
+	
+	icoVerts.push([-1, t, 0]);
+	icoVerts.push([1, t, 0]);
+	icoVerts.push([-1, -t, 0]);
+	icoVerts.push([1, -t, 0]);
+	
+	icoVerts.push([0, -1, t]);
+	icoVerts.push([0, 1, t]);
+	icoVerts.push([0, -1, -t]);
+	icoVerts.push([0, 1, -t]);
+	
+	icoVerts.push([t, 0, -1]);
+	icoVerts.push([t, 0, 1]);
+	icoVerts.push([-t, 0, -1]);
+	icoVerts.push([-t, 0, 1])
+
+	let icoTrigs = [];
+
+	function trig(a, b, c) {
+		return [icoVerts[a], icoVerts[b], icoVerts[c]];
+	}
+
+	icoTrigs.push(trig(0, 11, 5));
+	icoTrigs.push(trig(0, 5, 1));
+	icoTrigs.push(trig(0, 1, 7));
+	icoTrigs.push(trig(0, 7, 10));
+	icoTrigs.push(trig(0, 10, 11));
+	
+	icoTrigs.push(trig(1, 5, 9));
+	icoTrigs.push(trig(5, 11, 4));
+	icoTrigs.push(trig(11, 10, 2));
+	icoTrigs.push(trig(10, 7, 6));
+	icoTrigs.push(trig(7, 1, 8));
+	
+	icoTrigs.push(trig(3, 9, 4));
+	icoTrigs.push(trig(3, 4, 2));
+	icoTrigs.push(trig(3, 2, 6));
+	icoTrigs.push(trig(3, 6, 8));
+	icoTrigs.push(trig(3, 8, 9));
+	
+	icoTrigs.push(trig(4, 9, 5));
+	icoTrigs.push(trig(2, 4, 11));
+	icoTrigs.push(trig(6, 2, 10));
+	icoTrigs.push(trig(8, 6, 7));
+	icoTrigs.push(trig(9, 8, 1));
+	
+
+	// Iterations
+	function normVert(vert) {
+		let norm = 0;
+		for (let i = 0; i < vert.length; i++) {
+			norm += vert[i]*vert[i];
+		}
+		norm = Math.sqrt(norm);
+
+		let newVert = [];
+		for (let i = 0; i < vert.length; i++) {
+			newVert.push(vert[i]/norm);
+		}
+		return newVert;
+	}
+	
+	function normAllVerts(trigList) {
+		let newTrigList = [];
+		for (let i = 0; i < trigList.length; i++) {
+			let newVertList = [];
+			for (let j = 0; j < trigList[i].length; j++) {
+				newVertList.push(normVert(trigList[i][j]));
+			}
+			newTrigList.push(newVertList);
+		}
+		return newTrigList;
+	}
+
+	icoTrigs = normAllVerts(icoTrigs);
+
+	const depth = 2;
+	// TODO: Iteration
+	
+	// Flatten
+	vertices = []
+	for (let i = 0; i < icoTrigs.length; i++) {
+		for (let j = 0; j < icoTrigs[i].length; j++) {
+			for (let k = 0; k < icoTrigs[i][j].length; k++) {
+				vertices.push(icoTrigs[i][j][k]);
+			}
+		}
+	}
+
+	//sphereVertices = vertices;
 }
 
 function drawSphere(gl) {
@@ -92,6 +188,4 @@ function drawSphere(gl) {
 
 	// Execute program
 	gl.drawArrays(gl.TRIANGLES, 0, sphereVertices.length/2);
-
-	console.log(gl.isBuffer(positionBuffer));
 }
