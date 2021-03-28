@@ -6,7 +6,9 @@ import {
 	tensor
 } from "./maths.js";
 
-import * as q from "./quantum.js"
+import * as q from "./quantum.js";
+
+import * as bloch from "./bloch.js";
 
 // == Initialization ==
 
@@ -26,14 +28,9 @@ let amp1Display = document.getElementById("amp1");
 let blochDisplay = document.getElementById("bloch");
 
 let blochVisuDisplay = document.getElementById("bloch-visualization");
-let bCtx = blochVisuDisplay.getContext("2d");
+let bgl = blochVisuDisplay.getContext("webgl");
 
-bCtx.fillStyle = "#5CE";
-bCtx.fillRect(0, 0, 300, 300);
-bCtx.fillStyle = "#00F";
-bCtx.beginPath();
-bCtx.arc(150, 150, 130, 0, 2* Math.PI);
-bCtx.fill();
+bloch.setup(bgl);
 
 let prob0Display = document.getElementById("prob0");
 let prob1Display = document.getElementById("prob1");
