@@ -72,13 +72,17 @@ export class cMatrix {
   show() {
     let matrix = "["
     for (let i = 0; i < this.m; i++) {
-      matrix += "["
+      if (this.n > 1) {
+				matrix += "[";
+			}
       for (let j = 0; j < this.n; j++) {
-        matrix += this.content[i*this.n + j].show() + " "
+        matrix += this.content[i*this.n + j].show() + " ";
       }
-      matrix = matrix.trim() + "] "
+			if (this.n > 1) {
+      	matrix = matrix.trim() + "] ";
+			}
     }
-    matrix = matrix.trim() + "]"
+    matrix = matrix.trim() + "]";
     return matrix;
   }
 

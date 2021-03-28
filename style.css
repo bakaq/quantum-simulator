@@ -75,9 +75,14 @@ body > * {
 	grid-gap: 1em;
 }
 
+.section-title {
+	margin: 0;
+}
+
 .bar {
 	background-color: hsl(0, 100%, 50%);
 	width: 1em;
+	transition-duration: 0.2s;
 }   
 
 #graph-wrapper, #graph-labels {

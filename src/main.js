@@ -54,12 +54,12 @@ function updateDisplay() {
 	prob1Display.style.height = `${probs[1]*100}%`;
 }
 
-let hadamardBtn = document.getElementById("hadamard");
+let HBtn = document.getElementById("H");
 let XBtn = document.getElementById("X");
 let YBtn = document.getElementById("Y");
 let ZBtn = document.getElementById("Z");
 
-hadamardBtn.onclick = () => {
+HBtn.onclick = () => {
 	state = mmMult(q.h, state).normalized();
 	updateDisplay();
 };
