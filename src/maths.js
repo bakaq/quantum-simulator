@@ -9,7 +9,7 @@ export class Complex {
 
   show() {
     const sign = this.imag >= 0 ? "+" : "-";
-    return `${this.real}${sign}${Math.abs(this.imag)}i`;
+    return `${this.real.toFixed(3)}${sign}${Math.abs(this.imag).toFixed(3)}i`;
   }
 
   conjugate() {

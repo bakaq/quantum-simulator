@@ -7,49 +7,66 @@
 		<link rel="stylesheet" href="style.css">
 	</head>
 	<body>
-		<a href="https://bakaq.github.io" id="return-btn">Return</a>
-		
-		<p>State: 
-			<span id="state"></span>
-			<div id="graph-wrapper">
-				<div id="amp0" class="bar" height="1em"></div>
-				<div id="amp1" class="bar"></div>
-			</div>
-			<div id="graph-labels">
-				<span>|0&gt;</span>
-				<span>|1&gt;</span>
-			</div>
-		</p>
-		
-		<p>Phase:
-			<b style="background-color: hsl(0, 100%, 50%)">0º</b>,
-			<b style="background-color: hsl(90, 100%, 50%)">90º</b>,
-			<b style="background-color: hsl(180, 100%, 50%)">180º</b>,
-			<b style="background-color: hsl(270, 100%, 50%)">270º</b>
-		</p>
 
-		<p>Bloch Coordinates: 
-			<span id="bloch"></span>
-			<canvas id="bloch-visualization" width=300 height=300>
-		</p>
-		
-		<p>Probabilities:
-			<div id="graph-wrapper">
-				<div id="prob0" class="bar" height="1em"></div>
-				<div id="prob1" class="bar"></div>
+		<div class="tabs">
+			<a href="https://bakaq.github.io" id="return">Return</a>
+			<a class="selected">Single Qubit</a>
+			<a>Multiple Qubit</a>
+		</div>
+
+		<div class="content">
+			<div class="tab-content" id="single-qubit">
+				<div>
+					<h3>State:</h3>
+
+					<div id="graph-wrapper">
+						<div id="amp0" class="bar" height="1em"></div>
+						<div id="amp1" class="bar"></div>
+					</div>
+					<div id="graph-labels">
+						<span>|0&gt;</span>
+						<span>|1&gt;</span>
+					</div>
+					
+					<span id="state"></span>
+					
+					<div>
+						Phase:
+						<b style="background-color: hsl(0, 100%, 50%)">0º</b>,
+						<b style="background-color: hsl(90, 100%, 50%)">90º</b>,
+						<b style="background-color: hsl(180, 100%, 50%)">180º</b>,
+						<b style="background-color: hsl(270, 100%, 50%)">270º</b>
+					</div>
+				</div>
+				
+				<div>
+					<h3>Probabilities:</h3>
+					<div id="graph-wrapper">
+						<div id="prob0" class="bar" height="1em"></div>
+						<div id="prob1" class="bar"></div>
+					</div>
+					<div id="graph-labels">
+						<span>|0&gt;</span>
+						<span>|1&gt;</span>
+					</div>
+				</div>
+				
+				<div>
+					<h3>Bloch Coordinates:</h3> 
+					<canvas id="bloch-visualization" width=300 height=300></canvas>
+					<span id="bloch"></span>
+				</div>
+
+				<div>
+					<h3>Gates:</h3>
+					<button id="hadamard">Hadamard</button>
+					<button id="X">X</button>
+					<button id="Y">Y</button>
+					<button id="Z">Z</button>
+				</div>
+			
 			</div>
-			<div id="graph-labels">
-				<span>|0&gt;</span>
-				<span>|1&gt;</span>
-			</div>
-		</p>
-
-
-		<button id="hadamard">Hadamard</button>
-		<button id="X">X</button>
-		<button id="Y">Y</button>
-		<button id="Z">Z</button>
-
+		</div>
 		<script type="module" src="src/main.js"></script>
 	</body>
 </html>

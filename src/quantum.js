@@ -26,7 +26,7 @@ function blochCoords(state) {
 
 	const amplitudePhase = Math.atan2(state.content[1].norm(), (state.content[0].norm()))*2;
 
-	return `[${amplitudePhase} ${relativePhase}]`;
+	return `[${amplitudePhase.toFixed(3)} ${relativePhase.toFixed(3)}]`;
 }
 
 // == Quantum Gates ==

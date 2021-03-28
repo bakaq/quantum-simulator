@@ -1,3 +1,80 @@
+:root {
+	--bg-c: #CCC;
+	--content-c: #FEB;
+	--tab-c: #EDA;
+	--return-c: #7BE;
+}
+
+
+body {
+	background-color: var(--bg-c);
+	
+	display: flex;
+	flex-flow: column nowrap;
+	align-items: center;
+	margin: 0;
+}
+
+body > * {
+	width: 95%;
+}
+
+.content {
+	background-color: var(--content-c);
+	box-sizing: border-box;
+	padding: 8px;
+	border-radius: 8px;
+}
+
+.tabs {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: flex-end;
+
+	box-sizing: border-box;
+	padding: 0 8px;
+	height: 2.5em;
+}
+
+.tabs > a {
+	background-color: var(--tab-c);
+	
+	display: block;
+	position: relative;
+	
+	border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
+	padding: 0.2em;
+	margin-left: 0.2em;
+	width: fit-content;
+	
+	text-decoration: none;
+	color: unset;
+}
+
+.tabs > a:first-child {
+	margin: 0;
+}
+
+.tabs > .selected {
+	background-color: var(--content-c);
+}
+
+.tabs > a:hover {
+	padding-top: 0.4em;	
+}
+
+.tabs > #return {
+	background-color: var(--return-c);
+}
+
+
+#single-qubit {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-gap: 1em;
+}
+
 .bar {
 	background-color: hsl(0, 100%, 50%);
 	width: 1em;
@@ -8,7 +85,7 @@
 	flex-flow: row nowrap;
 	justify-content: space-around;
 	align-items: flex-end;
-	width: 10em;
+	width: 100%;
 }   
 
 #graph-wrapper {
@@ -18,8 +95,8 @@
 
 #bloch-visualization {
 	display: block;
-	height: 12em;
-	width: 12em;
+	max-width: 100%;
+	box-sizing: border-box;
 
 	border-style: solid;
 	border-color: black;
