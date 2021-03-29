@@ -19,14 +19,18 @@ function probabilities(state) {
 	return [state.content[0].norm2(), state.content[1].norm2()];
 }
 
-function blochCoords(state) {
+function blochCoords(state, formated) {
 	const phase1 = Math.atan2(state.content[0].imag, state.content[0].real);
 	const phase2 = Math.atan2(state.content[1].imag, state.content[1].real);
 	const relativePhase = phase2 - phase1;
 
 	const amplitudePhase = Math.atan2(state.content[1].norm(), (state.content[0].norm()))*2;
 
+	if (formated) {
 	return `[${amplitudePhase.toFixed(3)} ${relativePhase.toFixed(3)}]`;
+	} else {
+		return [amplitudePhase, relativePhase];
+	}
 }
 
 // == Quantum Gates ==

@@ -4,175 +4,302 @@ import * as webgl from "./webgl.js";
 
 export {setup, render};
 
-// "Global" variables
+// == Shaders ==
 
-let vertexShader = `
-attribute vec4 a_position;
-attribute vec3 a_normal;
-
-uniform mat4 u_translation;
-uniform mat4 u_projection;
-
-varying float v_intensity;
+// Circle
+let circleVertexShader = `
+attribute vec2 a_position;
 
 void main() {
-	gl_Position = u_projection * u_translation * a_position;
-	v_intensity = -dot(normalize(vec3(1,-1,-1)), a_normal);
+	gl_Position = vec4(a_position, 0.0, 1.0);
 }
 `;
-let fragmentShader = `
+let circleFragmentShader = `
 precision mediump float;
 
-varying float v_intensity;
-
 void main() {
-	gl_FragColor = vec4(v_intensity*vec3(1, 1, 1), 1);
+	gl_FragColor = vec4(0.5, 0.5, 1.0, 1.0);
 }
 `;
 
-let program;
+// Marks
+let marksVertexShader = `
+attribute vec4 a_position;
 
-let positionBuffer;
-let normalBuffer;
+uniform mat4 u_projection;
+uniform mat4 u_rotationY;
+uniform mat4 u_rotationX;
 
-let sphereVertices;
+uniform mat4 u_translation;
+
+void main() {
+	gl_Position = u_projection * u_translation * u_rotationX * u_rotationY * a_position;
+}
+`;
+
+let marksFragmentShader = `
+precision mediump float;
+
+uniform float u_back;
+
+void main() {
+	if (u_back > 0.0) {
+		gl_FragColor = vec4(0.6*vec3(0.5, 0.5, 1.0), 1.0);
+	} else {
+		gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+	}
+}
+`;
+
+// Pointer
+let pointerVertexShader = `
+attribute vec4 a_position;
+
+uniform mat4 u_projection;
+uniform mat4 u_rotationY;
+uniform mat4 u_rotationX;
+
+uniform mat4 u_translation;
+
+void main() {
+	gl_Position = u_projection * u_translation * u_rotationX * u_rotationY * a_position;
+}
+`;
+
+let pointerFragmentShader = `
+precision mediump float;
+
+void main() {
+	gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+}
+`;
+
+// == "Global" Variables ==
+
+// Programs
+let circleProgram;
+let marksProgram;
+let pointerProgram
+
+// Buffers
+let circlePositionBuffer;
+let circleVertices;
+
+let marksPositionBuffer;
+let marksVertices;
+
+let pointerPositionBuffer;
+let pointerVertices = [
+	0, 0, 0,
+	1, 0, 0
+];
+
+// == Main Functions ==
 
 function setup(gl) {
-	calculateSphereVertices();
+	// Precalculate stuff
+	calculateCircleVertices();
+	calculateMarksVertices();
 
+	// WebGL setup
 	gl.enable(gl.CULL_FACE);
 	gl.enable(gl.DEPTH_TEST);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	gl.enable(gl.BLEND);
 
-	// Create program
-	program = webgl.createProgram(gl, vertexShader, fragmentShader);
+	// Create programs
+	circleProgram = webgl.createProgram(gl, circleVertexShader, circleFragmentShader);
+	marksProgram = webgl.createProgram(gl, marksVertexShader, marksFragmentShader);
+	pointerProgram = webgl.createProgram(gl, pointerVertexShader, pointerFragmentShader);
 	
 	// Attributes and uniforms
-	program.a_position = gl.getAttribLocation(program, "a_position");
-	program.a_normal = gl.getAttribLocation(program, "a_normal");
-	program.u_translation = gl.getUniformLocation(program, "u_translation")
-	program.u_projection = gl.getUniformLocation(program, "u_projection")
+	circleProgram.a_position = gl.getAttribLocation(circleProgram, "a_position");
 	
-	// Buffer
-	positionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphereVertices), gl.STATIC_DRAW);
+	marksProgram.a_position = gl.getAttribLocation(marksProgram, "a_position");
+	marksProgram.u_rotationY = gl.getUniformLocation(marksProgram, "u_rotationY");
+	marksProgram.u_rotationX = gl.getUniformLocation(marksProgram, "u_rotationX");
+	marksProgram.u_projection = gl.getUniformLocation(marksProgram, "u_projection");
+	marksProgram.u_translation = gl.getUniformLocation(marksProgram, "u_translation");
+	marksProgram.u_back = gl.getUniformLocation(marksProgram, "u_back");
 	
+	pointerProgram.a_position = gl.getAttribLocation(pointerProgram, "a_position");
+	pointerProgram.u_rotationY = gl.getUniformLocation(pointerProgram, "u_rotationY");
+	pointerProgram.u_rotationX = gl.getUniformLocation(pointerProgram, "u_rotationX");
+	pointerProgram.u_projection = gl.getUniformLocation(pointerProgram, "u_projection");
+	pointerProgram.u_translation = gl.getUniformLocation(pointerProgram, "u_translation");
 
-	function cross(a, b) {
-		let c = [0, 0, 0];
-		c[0] = a[1]*b[2] - a[2]*b[1];
-		c[1] = a[2]*b[0] - a[0]*b[2];
-		c[2] = a[0]*b[1] - a[1]*b[0];
-		return c;
-	}
+	// Buffers
+	circlePositionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, circlePositionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(circleVertices), gl.STATIC_DRAW);
 
-	function normal(trig) {
-		let a = [];
-		for (let i = 0; i < trig[0].length; i++) {
-			a.push(trig[1][i] - trig[0][i]);
-		}
-		let b = [];
-		for (let i = 0; i < trig.length; i++) {
-			b.push(trig[2][i] - trig[0][i]);
-		}
-		let c = cross(a, b);
-		let norm = 0;
-		for (let i = 0; i < c.length; i++) {
-			norm += c[i]*c[i];
-		}
-		norm = Math.sqrt(norm);
-		for (let i = 0; i < c.length; i++) {
-			c[i] = c[i]/norm;
-		}
-		return c;
-	}
+	marksPositionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, marksPositionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(marksVertices), gl.STATIC_DRAW);
 	
-	let normals = []
-	for (let i = 0; i < sphereVertices.length/9; i++) {
-		let trig = [];
-		for (let j = 0; j < 3; j++) {
-			let vert = [];
-			for (let k = 0; k < 3; k++) {
-				vert.push(sphereVertices[9*i +3*j + k]);
-			}
-			trig.push(vert);
-		}
-
-		let n = normal(trig);
-		normals.push(n[0]);
-		normals.push(n[1]);
-		normals.push(n[2]);
-		normals.push(n[0]);
-		normals.push(n[1]);
-		normals.push(n[2]);
-		normals.push(n[0]);
-		normals.push(n[1]);
-		normals.push(n[2]);
-	}
-	console.log(normals);
-
-	normalBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+	pointerPositionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, pointerPositionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pointerVertices), gl.STATIC_DRAW);
 	
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-
-	render(gl);
-}
-
-function render(gl) {
 	// Set up viewport
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+	
+	// Render
+	render(gl, [0, 0]);
+}
 
+function render(gl, blochCoords) {
 	// Clear canvas
 	gl.clearColor(0x55/0xFF, 0xCC/0xFF, 0xEE/0xFF, 1);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+	// Bloch coordinates
+	calculatePointerRotations(blochCoords);
+	
+	gl.bindBuffer(gl.ARRAY_BUFFER, pointerPositionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pointerVertices), gl.STATIC_DRAW);
+
+	// Draw
 	drawSphere(gl);
-	//drawPointer(gl);
+	drawPointer(gl);
 	//drawLabels(gl);
 }
 
-function drawSphere(gl) {
-	// Set program
-	gl.useProgram(program);
+// == Auxiliary Functions ==
 
+function drawSphere(gl) {
+	drawCircle(gl);
+	drawMarks(gl);
+}
+
+function drawCircle(gl) {
+	// Set program
+	gl.useProgram(circleProgram);
+	
+	// Set attributes
+	gl.enableVertexAttribArray(circleProgram.a_position);
+	gl.bindBuffer(gl.ARRAY_BUFFER, circlePositionBuffer);
+	gl.vertexAttribPointer(circleProgram.a_position, 2, gl.FLOAT, false, 0, 0);
+	
+	// Execute program
+	gl.drawArrays(gl.TRIANGLES, 0, circleVertices.length/2);
+}
+
+function drawMarks(gl) {
+	// Set program
+	gl.useProgram(marksProgram);
+	
 	// Set uniforms
+	let angY = Math.PI/4;
+	let angX = -Math.PI/6; 
+	let rotationY = [
+		Math.cos(angY), 0, Math.sin(angY), 0,
+		0, 1, 0, 0,
+		-Math.sin(angY), 0, Math.cos(angY), 0,
+		0, 0, 0, 1
+	];
+	let rotationX = [
+		1, 0, 0, 0,
+		0, Math.cos(angX), -Math.sin(angX), 0,
+		0, Math.sin(angX), Math.cos(angX), 0,
+		0, 0, 0, 1
+	];
+
+	let projection = [
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, -1, 0,
+		0, 0, 0, 1
+	];
+	
 	let translation = [
 		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
 		0, 0, 0, 1
 	];
-	gl.uniformMatrix4fv(program.u_translation, false, translation);	
+	
+	gl.uniformMatrix4fv(marksProgram.u_rotationY, false, rotationY);	
+	gl.uniformMatrix4fv(marksProgram.u_rotationX, false, rotationX);	
+	gl.uniformMatrix4fv(marksProgram.u_projection, false, projection);	
+	gl.uniformMatrix4fv(marksProgram.u_translation, false, translation);	
+	gl.uniform1f(marksProgram.u_back, 0.0);	
+
+	// Set attributes
+	gl.enableVertexAttribArray(marksProgram.a_position);
+	gl.bindBuffer(gl.ARRAY_BUFFER, marksPositionBuffer);
+	gl.vertexAttribPointer(marksProgram.a_position, 3, gl.FLOAT, false, 0, 0);
+
+	// Execute program
+	gl.drawArrays(gl.LINES, 0, marksVertices.length/3);
+
+	// Backmarkings
+	translation = [
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 1, 1
+	];
+	gl.uniformMatrix4fv(marksProgram.u_translation, false, translation);	
+	gl.uniform1f(marksProgram.u_back, 1.0);	
+	
+	gl.drawArrays(gl.LINES, 0, marksVertices.length/3);
+}
+
+function drawPointer(gl) {	
+	// Set program
+	gl.useProgram(pointerProgram);
+
+	gl.clear(gl.DEPTH_BUFFER_BIT);
+
+	// Set uniforms
+	let angY = Math.PI/4;
+	let angX = -Math.PI/6; 
+	let rotationY = [
+		Math.cos(angY), 0, Math.sin(angY), 0,
+		0, 1, 0, 0,
+		-Math.sin(angY), 0, Math.cos(angY), 0,
+		0, 0, 0, 1
+	];
+	let rotationX = [
+		1, 0, 0, 0,
+		0, Math.cos(angX), -Math.sin(angX), 0,
+		0, Math.sin(angX), Math.cos(angX), 0,
+		0, 0, 0, 1
+	];
+
 	let projection = [
 		1, 0, 0, 0,
 		0, 1, 0, 0,
-		0, 0, 1/5, 0,
+		0, 0, -1, 0,
 		0, 0, 0, 1
 	];
-	gl.uniformMatrix4fv(program.u_projection, false, projection);	
+	
+	let translation = [
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	];
+	
+	gl.uniformMatrix4fv(pointerProgram.u_rotationY, false, rotationY);	
+	gl.uniformMatrix4fv(pointerProgram.u_rotationX, false, rotationX);	
+	gl.uniformMatrix4fv(pointerProgram.u_projection, false, projection);	
+	gl.uniformMatrix4fv(pointerProgram.u_translation, false, translation);	
 
 	// Set attributes
-	gl.enableVertexAttribArray(program.a_position);
-
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-	gl.vertexAttribPointer(program.a_position, 3, gl.FLOAT, false, 0, 0);
-
-	gl.enableVertexAttribArray(program.a_normal);
-
-	gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-
-	gl.vertexAttribPointer(program.a_normal, 3, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(pointerProgram.a_position);
+	gl.bindBuffer(gl.ARRAY_BUFFER, pointerPositionBuffer);
+	gl.vertexAttribPointer(pointerProgram.a_position, 3, gl.FLOAT, false, 0, 0);
+	
+	console.log(pointerVertices);
 
 	// Execute program
-	gl.drawArrays(gl.TRIANGLES, 0, sphereVertices.length/3);
+	gl.drawArrays(gl.LINES, 0, pointerVertices.length/3);
 }
 
-function calculateSphereVertices() {
-	// Circle
-	let r = 0.7;
+function calculateCircleVertices() {
+	let r = 1.0;
 	let res = 40;
 	let vertices = [];
 	for (let i = 0; i < res; i++) {
@@ -185,99 +312,65 @@ function calculateSphereVertices() {
 		vertices.push(0);
 		vertices.push(0);
 	}
-	sphereVertices = vertices;
-	
-	// Icosphere
-	const t = (1 + Math.sqrt(5))/2;
-	let icoVerts = [];
-	
-	icoVerts.push([-1, t, 0]);
-	icoVerts.push([1, t, 0]);
-	icoVerts.push([-1, -t, 0]);
-	icoVerts.push([1, -t, 0]);
-	
-	icoVerts.push([0, -1, t]);
-	icoVerts.push([0, 1, t]);
-	icoVerts.push([0, -1, -t]);
-	icoVerts.push([0, 1, -t]);
-	
-	icoVerts.push([t, 0, -1]);
-	icoVerts.push([t, 0, 1]);
-	icoVerts.push([-t, 0, -1]);
-	icoVerts.push([-t, 0, 1])
+	circleVertices = vertices;
+}
 
-	let icoTrigs = [];
-
-	function trig(a, b, c) {
-		return [icoVerts[a], icoVerts[b], icoVerts[c]];
+function calculateMarksVertices() {
+	let marksLines = [];
+	// Axes
+	marksLines.push([[0, 0, 0], [1, 0, 0]]);
+	marksLines.push([[0, 0, 0], [0, 1, 0]]);
+	marksLines.push([[0, 0, 0], [0, 0, 1]]);
+	
+	// Great Circles
+	let res = 40;
+	
+	// xy
+	for (let i = 0; i < res; i++) {
+		marksLines.push([
+			[Math.cos(2*Math.PI*i/res), Math.sin(2*Math.PI*i/res), 0],
+			[Math.cos(2*Math.PI*(i+1)/res), Math.sin(2*Math.PI*(i+1)/res), 0]
+		]);
 	}
 
-	icoTrigs.push(trig(0, 11, 5));
-	icoTrigs.push(trig(0, 5, 1));
-	icoTrigs.push(trig(0, 1, 7));
-	icoTrigs.push(trig(0, 7, 10));
-	icoTrigs.push(trig(0, 10, 11));
-	
-	icoTrigs.push(trig(1, 5, 9));
-	icoTrigs.push(trig(5, 11, 4));
-	icoTrigs.push(trig(11, 10, 2));
-	icoTrigs.push(trig(10, 7, 6));
-	icoTrigs.push(trig(7, 1, 8));
-	
-	icoTrigs.push(trig(3, 9, 4));
-	icoTrigs.push(trig(3, 4, 2));
-	icoTrigs.push(trig(3, 2, 6));
-	icoTrigs.push(trig(3, 6, 8));
-	icoTrigs.push(trig(3, 8, 9));
-	
-	icoTrigs.push(trig(4, 9, 5));
-	icoTrigs.push(trig(2, 4, 11));
-	icoTrigs.push(trig(6, 2, 10));
-	icoTrigs.push(trig(8, 6, 7));
-	icoTrigs.push(trig(9, 8, 1));
-	
-
-	// Iterations
-	function normVert(vert) {
-		let norm = 0;
-		for (let i = 0; i < vert.length; i++) {
-			norm += vert[i]*vert[i];
-		}
-		norm = Math.sqrt(norm);
-
-		let newVert = [];
-		for (let i = 0; i < vert.length; i++) {
-			newVert.push(vert[i]/norm);
-		}
-		return newVert;
-	}
-	
-	function normAllVerts(trigList) {
-		let newTrigList = [];
-		for (let i = 0; i < trigList.length; i++) {
-			let newVertList = [];
-			for (let j = 0; j < trigList[i].length; j++) {
-				newVertList.push(normVert(trigList[i][j]));
-			}
-			newTrigList.push(newVertList);
-		}
-		return newTrigList;
+	// yz
+	for (let i = 0; i < res; i++) {
+		marksLines.push([
+			[0, Math.cos(2*Math.PI*i/res), Math.sin(2*Math.PI*i/res)],
+			[0, Math.cos(2*Math.PI*(i+1)/res), Math.sin(2*Math.PI*(i+1)/res)]
+		]);
 	}
 
-	icoTrigs = normAllVerts(icoTrigs);
+	// zx
+	for (let i = 0; i < res; i++) {
+		marksLines.push([
+			[Math.cos(2*Math.PI*i/res), 0, Math.sin(2*Math.PI*i/res)],
+			[Math.cos(2*Math.PI*(i+1)/res), 0, Math.sin(2*Math.PI*(i+1)/res)]
+		]);
+	}
 
-	const depth = 2;
-	// TODO: Iteration
-	
 	// Flatten
-	vertices = []
-	for (let i = 0; i < icoTrigs.length; i++) {
-		for (let j = 0; j < icoTrigs[i].length; j++) {
-			for (let k = 0; k < icoTrigs[i][j].length; k++) {
-				vertices.push(icoTrigs[i][j][k]);
+	let vertices = []
+	for (let i = 0; i < marksLines.length; i++) {
+		for (let j = 0; j < marksLines[i].length; j++) {
+			for (let k = 0; k < marksLines[i][j].length; k++) {
+				vertices.push(marksLines[i][j][k]);
 			}
 		}
 	}
 
-	sphereVertices = vertices;
+	marksVertices = vertices;
+}
+
+function calculatePointerRotations(blochCoords) {
+	let vertices = [0, 0, 0];
+
+	vertices.push(Math.sin(blochCoords[1])*Math.sin(blochCoords[0]));
+	vertices.push(Math.cos(blochCoords[0]));
+	vertices.push(Math.cos(blochCoords[1])*Math.sin(blochCoords[0]));
+
+	console.log(vertices);
+
+	pointerVertices = vertices;
+	
 }

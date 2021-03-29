@@ -45,8 +45,9 @@ function updateDisplay() {
 	amp0Display.style.backgroundColor = `hsl(${state.content[0].arg()*180/Math.PI}, 100%, 50%)`;
 	amp1Display.style.backgroundColor = `hsl(${state.content[1].arg()*180/Math.PI}, 100%, 50%)`;
 	
-	blochDisplay.innerText = q.blochCoords(state);
-	
+	blochDisplay.innerText = q.blochCoords(state, true);
+	bloch.render(bgl, q.blochCoords(state, false));
+
 	const probs = q.probabilities(state);
 	prob0Display.style.height = `${probs[0]*100}%`;
 	prob1Display.style.height = `${probs[1]*100}%`;
